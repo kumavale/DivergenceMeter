@@ -20,7 +20,7 @@ int terminal_height = 14;
 
 
 void finish() {
-	printf("\033[?25h\033[0m\033[H\033[2J");
+	printf("\033[?25h\033[0m");
 	exit(0);
 }
 
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 {
   time_t t, to;
   struct tm *n;
-  char f[16];
+  char f[16] = {'\0'};
   const char *colors[128] = {NULL};
   int i, j;
   int c, r;
@@ -124,15 +124,18 @@ int main(int argc, char **argv)
 
   if( dMeter )
   {
-    float r, u, s;
+    float r, s;
     struct timespec ts;
-    srand((unsigned int)time(NULL));
     clock_gettime(CLOCK_REALTIME, &ts);
-    u = (float)ts.tv_nsec;
+    srand(((unsigned int)time(NULL)+(unsigned int)ts.tv_nsec)/2);
+    //printf("Calculating...\r\033[?25l");
+    //fflush(stdout);
+    //for(int _i=0; _i<65536; _i++)
+    //  (void)rand(); // Do nothing
     r = (float)rand();
-    s = (r+u)/(RAND_MAX+(u/1.01));
-    sprintf(f, "%06f", s);
-    if(s > 0.999999) printf("%c", 0x07);
+    s = (1.123581*r)/RAND_MAX;
+    snprintf(f, 15, "%08.6f", s);
+    if(s >= 1.0) printf("%c", 0x07);
   }
 
   if( set_title )
@@ -203,10 +206,10 @@ int main(int argc, char **argv)
     printf("\033[%d;1H", terminal_height);
     fflush(stdout);
 
-    if( dMeter ) exit(0);
-    printf("\033[H"); /* Reset cursor */
+    if( dMeter ) finish();
+    printf("\033[H\033[?25l");
 
-    usleep(900000);
+    usleep(500000);
   }
 
   return 0;
